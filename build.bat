@@ -1,2 +1,2 @@
 @echo off
-gcc bytecode_interpreter.c -o pms.exe -Wall
+gcc src/sb_main.c -o strawberry.exe -Wall -O3

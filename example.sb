@@ -1,0 +1,4 @@
+string a = "Hello"
+print a
+a = "Hello World"
+print a

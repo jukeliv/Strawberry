@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "bytecode_token.h": "c",
+        "pms_interpreter.h": "c"
+    }
+}
