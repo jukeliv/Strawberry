@@ -43,8 +43,17 @@ int interpret(const char* prog)
                 return 1;
             
             int op = -1;
-            if(token_list.content[i++].type == TOK_SET)
+            if(token_list.content[i].type == TOK_SET)
                 op = 0;
+            else if(token_list.content[i].type == TOK_ADDITION)
+                op = 1;
+            else if(token_list.content[i].type == TOK_SUBTRACTION)
+                op = 2;
+            
+            ++i;
+
+            if(op == -1)
+                return 1;
 
             variable* b = find_var(variables, heap, token_list.content[i].value.content);
             if(b == NULL && token_list.content[i].type != TOK_ID)
@@ -57,8 +66,41 @@ int interpret(const char* prog)
                         return 1;
                     a->value = token_list.content[i].value;
                 }
+                else if(op == 1)
+                {
+                    if(a->type == INT && token_list.content[i].type != TOK_NUM)
+                        return 1;
+                    else if(a->type == STRING && token_list.content[i].type != TOK_STR)
+                        return 1;
+
+                    if(a->type == STRING)
+                        String_Concat(&a->value, token_list.content[i].value.content);
+                    
+                    if(a->type == INT)
+                    {
+                        int valA = stoi(a->value.content);
+                        printf("%d\n", valA);
+                        int valB = stoi(token_list.content[i].value.content);
+                        printf("%d\n", valB);
+                        a->value.content = (char*)itos(valA + valB);
+                    }
+                }else if(op == 2)
+                {
+                    if(a->type == INT && token_list.content[i].type != TOK_NUM)
+                        return 1;
+                    else if(a->type == STRING)
+                        return 1;
+                    if(a->type == STRING)
+                        return 1;
+                    if(a->type == INT)
+                    {
+                        int valA = stoi(a->value.content);
+                        int valB = stoi(token_list.content[i].value.content);
+                        a->value.content = (char*)itos(valA - valB);
+                    }
+                }
             }
-            else
+            else if(token_list.content[i].type == TOK_ID)
             {
                 if(op == 0)
                 {
@@ -66,7 +108,35 @@ int interpret(const char* prog)
                         return 1;
                     a->value = b->value;
                 }
+                if(op == 1)
+                {
+                    if(a->type != b->type)
+                        return 1;
+                    if(a->type == STRING)
+                        String_Concat(&a->value, b->value.content);
+                    if(a->type == INT)
+                    {
+                        int valA = stoi(a->value.content);
+                        int valB = stoi(b->value.content);
+                        a->value.content = (char*)itos(valA + valB);
+                    }
+                }
+                if(op == 2)
+                {
+                    if(a->type != b->type)
+                        return 1;
+                    if(a->type == STRING)
+                        return 1;
+                    if(a->type == INT)
+                    {
+                        int valA = stoi(a->value.content);
+                        int valB = stoi(b->value.content);
+                        a->value.content = (char*)itos(valA + valB);
+                    }
+                }
             }
+            else
+                return 1;
         }
         else if(token_list.content[i].type == TOK_INT)
         {
@@ -77,16 +147,14 @@ int interpret(const char* prog)
             }
             variables[var_index].id = token_list.content[++i].value.content;
             ++i;
-            variables[var_index].value = token_list.content[++i].value;
+            variables[var_index].value = String_copy(token_list.content[++i].value);
             variables[var_index].type = INT;
             ++var_index;
         }
         else if(token_list.content[i].type == TOK_STR)
         {
             if(strcmp(token_list.content[i].value.content, "string"))
-            {
                 return 1;
-            }
             if(var_index >= heap)
             {
                 heap *= 2;
@@ -94,7 +162,7 @@ int interpret(const char* prog)
             }
             variables[var_index].id = token_list.content[++i].value.content;
             ++i;
-            variables[var_index].value = token_list.content[++i].value;
+            variables[var_index].value = String_copy(token_list.content[++i].value);
             variables[var_index].type = STRING;
             ++var_index;
         }

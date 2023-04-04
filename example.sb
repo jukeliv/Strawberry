@@ -1,4 +1,21 @@
-string a = "Hello"
+; string "cat" with two variables
+string a = "Hello "
+string b = "World"
+a += b
 print a
-a = "Hello World"
-print a
+
+; addition with two variables
+int c = 10
+int d = 30
+c += d
+print c
+
+; single variable string "cat"
+string hello = "Hello "
+hello += "John"
+print hello
+
+; single variable addition
+int e = 20
+e += 10
+print e

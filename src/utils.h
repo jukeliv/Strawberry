@@ -27,6 +27,14 @@ int stoi(const char* str)
     return si;
 }
 
+const char* itos(int num)
+{
+    int size = snprintf(NULL, 0, "%d", num);
+    char* str = (char*)malloc(sizeof(char)*size + 1);
+    snprintf(str, size + 1, "%d", num);
+    return str;
+}
+
 const char* read_file(const char* file_path)
 {
     FILE* file = fopen(file_path, "rb");

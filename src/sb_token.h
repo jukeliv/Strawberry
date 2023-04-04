@@ -17,6 +17,10 @@ typedef enum
     TOK_CLOSE_BRACKET,
     TOK_SET,
     TOK_EQUALS,
+    TOK_PLUS,
+    TOK_ADDITION,
+    TOK_MINUS,
+    TOK_SUBTRACTION,
 } Token_Type;
 
 typedef struct
@@ -55,10 +59,11 @@ static String String_Init()
     str.content = (char*)malloc(sizeof(char));
     return str;
 }
+#endif
 
-static void String_Push(String* str, char c)
+void String_Push(String* str, char c)
 {
-    while(str->count >= str->heap)
+    while(str->count+1 >= str->heap)
     {
         str->heap *= 2;
         str->content = (char*)realloc(str->content, sizeof(char)*str->heap);
@@ -66,13 +71,12 @@ static void String_Push(String* str, char c)
     str->content[str->count++] = c;
     str->content[str->count] = '\0';
 }
-#endif
 
 String String_Init_Str(const char* src)
 {
     String str;
-    str.count = 0;
-    str.heap = 1;
+    str.count = strlen(src);
+    str.heap = strlen(src)-1;
     str.content = (char*)malloc(sizeof(char)*strlen(src));
     for(int i = 0; i < strlen(src); ++i)
     {
@@ -80,6 +84,19 @@ String String_Init_Str(const char* src)
     }
     str.content[strlen(src)] = '\0';
     return str;
+}
+
+String String_copy(String str)
+{
+    return String_Init_Str(str.content);
+}
+
+void String_Concat(String* dst, const char* src)
+{
+    for(int i = 0; i < strlen(src); ++i)
+    {
+        String_Push(dst, src[i]);
+    }
 }
 
 void Token_List_Init(Token_List* token_list)
@@ -112,7 +129,14 @@ void Tokenize(const char* source, Token_List* token_list)
 
         lex_i=0;
         memset(lex, '\0', 256);
-        if(source[i] == '=')
+
+        if(source[i] == ';')
+        {
+            while(source[i] != '\n')
+                ++i;
+            continue;
+        }
+        else if(source[i] == '=')
         {
             if(source[++i] == '='){
                 lex[lex_i++] = '=';
@@ -124,6 +148,38 @@ void Tokenize(const char* source, Token_List* token_list)
             {
                 lex[lex_i++] = '=';
                 Token_List_Push(token_list, Token_Init(TOK_SET, String_Init_Str(lex)));
+                ++i;
+            }
+            continue;
+        }
+        else if(source[i] == '+')
+        {
+            if(source[++i] == '='){
+                lex[lex_i++] = '+';
+                lex[lex_i++] = '=';
+                Token_List_Push(token_list, Token_Init(TOK_ADDITION, String_Init_Str(lex)));
+                ++i;
+            }
+            else
+            {
+                lex[lex_i++] = '+';
+                Token_List_Push(token_list, Token_Init(TOK_PLUS, String_Init_Str(lex)));
+                ++i;
+            }
+            continue;
+        }
+        else if(source[i] == '-')
+        {
+            if(source[++i] == '='){
+                lex[lex_i++] = '-';
+                lex[lex_i++] = '=';
+                Token_List_Push(token_list, Token_Init(TOK_SUBTRACTION, String_Init_Str(lex)));
+                ++i;
+            }
+            else
+            {
+                lex[lex_i++] = '-';
+                Token_List_Push(token_list, Token_Init(TOK_MINUS, String_Init_Str(lex)));
                 ++i;
             }
             continue;
