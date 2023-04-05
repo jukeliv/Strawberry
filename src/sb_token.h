@@ -2,7 +2,7 @@
 #ifndef SB_TOKEN_H_
 #define SB_TOKEN_H_
 
-#include "utils.h"
+#include "extern/utils.h"
 
 typedef enum
 {
@@ -25,13 +25,6 @@ typedef enum
 
 typedef struct
 {
-    unsigned long heap;
-    unsigned long count; 
-    char* content;
-} String;
-
-typedef struct
-{
     Token_Type type;
     String value;
 } Token;
@@ -49,54 +42,6 @@ static Token Token_Init(Token_Type type, String value)
     token.type = type;
     token.value = value;
     return token;
-}
-#if 0
-static String String_Init()
-{
-    String str;
-    str.count = 0;
-    str.heap = 1;
-    str.content = (char*)malloc(sizeof(char));
-    return str;
-}
-#endif
-
-void String_Push(String* str, char c)
-{
-    while(str->count+1 >= str->heap)
-    {
-        str->heap *= 2;
-        str->content = (char*)realloc(str->content, sizeof(char)*str->heap);
-    }
-    str->content[str->count++] = c;
-    str->content[str->count] = '\0';
-}
-
-String String_Init_Str(const char* src)
-{
-    String str;
-    str.count = strlen(src);
-    str.heap = strlen(src)-1;
-    str.content = (char*)malloc(sizeof(char)*strlen(src));
-    for(int i = 0; i < strlen(src); ++i)
-    {
-        str.content[i] = src[i];
-    }
-    str.content[strlen(src)] = '\0';
-    return str;
-}
-
-String String_copy(String str)
-{
-    return String_Init_Str(str.content);
-}
-
-void String_Concat(String* dst, const char* src)
-{
-    for(int i = 0; i < strlen(src); ++i)
-    {
-        String_Push(dst, src[i]);
-    }
 }
 
 void Token_List_Init(Token_List* token_list)

@@ -10,12 +10,14 @@ int d = 30
 c += d
 print c
 
+; ERROR: this part is not working
 ; single variable string "cat"
-string hello = "Hello "
-hello += "John"
-print hello
+;string hello = "Sup "
+;print hello
+;hello += "John" ; this returns error
+;print hello
 
-; single variable addition
-int e = 20
-e += 10
-print e
+;; single variable addition
+;int e = 20
+;e += 10
+;print e

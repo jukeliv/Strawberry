@@ -2,24 +2,44 @@
 
 int main(int argc, char** argv)
 {
-    if(argc < 1)
+    if(argc < 2)
     {
-        printf("Not enough arguments!!!\n");
+        printf("ERROR: Not enough arguments!!!\n");
         return 1;
     }
     if(!strcmp(argv[1], "-h"))
     {
         printf("Strawberry - Interpreted programming language\n");
-        printf("\tStrawberry is a staticly typed programming language for making video games");
+        printf("\tStrawberry is a staticly typed programming language for making video games\n\n");
+        printf("Commands\n");
+        printf("\t-h - this\n");
+        printf("\t-c - check for errors in your code before interpreting ( not implemented )\n");
+        printf("\t-i - interpret your code\n");
         return 0;
     }
-    if(!strcmp(argv[1], "-c") && argc > 2)
+    else if(!strcmp(argv[1], "-i"))
     {
+        if(argc < 3)
+        {
+            printf("ERROR: No file has been provided for the interpreter!!!\n");
+            return 1;
+        }
         const char* prog = read_file(argv[2]);
-        interpret(prog);
+        return interpret(prog);
+    }
+    else if(!strcmp(argv[1], "-c"))
+    {
+        if(argc < 3)
+        {
+            printf("ERROR: No file has been provided for error checking!!!\n");
+            return 1;
+        }
+        printf("TODO: add checking for errors in the code\n");
         return 0;
     }
-
-    printf("Unkown input!!!\n");
-    return 1;
+    else
+    {
+        printf("Unkown input!!!\n");
+        return 1;
+    }
 }

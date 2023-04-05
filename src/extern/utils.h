@@ -55,7 +55,6 @@ const char* read_file(const char* file_path)
         return NULL;
     }
 
-    // Read the file contents into the buffer
     size_t read_size = fread(buffer, 1, file_size, file);
     if (read_size != file_size) {
         printf("Error: Failed to read file\n");
@@ -64,11 +63,66 @@ const char* read_file(const char* file_path)
         return NULL;
     }
 
-    // Null-terminate the buffer
     buffer[read_size] = '\0';
 
     fclose(file);
     return buffer;
+}
+
+typedef struct
+{
+    unsigned long heap;
+    unsigned long count; 
+    char* content;
+} String;
+
+#if 0
+static String String_Init()
+{
+    String str;
+    str.count = 0;
+    str.heap = 1;
+    str.content = (char*)malloc(sizeof(char));
+    return str;
+}
+#endif
+
+void String_Push(String* str, char c)
+{
+    while(str->count+1 >= str->heap)
+    {
+        str->heap *= 2;
+        str->content = (char*)realloc(str->content, sizeof(char)*str->heap);
+    }
+    str->content[str->count++] = c;
+    str->content[str->count] = '\0';
+}
+
+String String_Init_Str(const char* src)
+{
+    String str;
+    str.count = strlen(src);
+    str.heap = strlen(src)-1;
+    str.content = (char*)malloc(sizeof(char)*strlen(src));
+    for(int i = 0; i < strlen(src); ++i)
+    {
+        str.content[i] = src[i];
+    }
+    str.content[strlen(src)] = '\0';
+    return str;
+}
+
+String String_copy(String str)
+{
+    return String_Init_Str(str.content);
+}
+
+void String_Concat(String* dst, const char* src)
+{
+    for(int i = 0; i < strlen(src); ++i)
+    {
+        String_Push(dst, src[i]);
+    }
 }
 
 #endif // UTILS_H_

@@ -1,0 +1,21 @@
+; This file is to check if every "Error check" I added indeed works
+
+; String subtraction
+string str = "H"
+str -= "lol"
+
+; Incorrect data type
+int a = 20
+a += "Hello"
+
+; Printing unknown variable
+print foo
+
+; If statements ( cuz they are not implemented yet )
+if a == 10
+
+; Setting a unknown variable to other unknown variable
+q = w
+
+; Setting a known variable to other unknown variable
+a = w
