@@ -76,8 +76,7 @@ typedef struct
     char* content;
 } String;
 
-#if 0
-static String String_Init()
+String String_Init()
 {
     String str;
     str.count = 0;
@@ -85,7 +84,6 @@ static String String_Init()
     str.content = (char*)malloc(sizeof(char));
     return str;
 }
-#endif
 
 void String_Push(String* str, char c)
 {

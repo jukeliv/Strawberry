@@ -19,3 +19,8 @@ q = w
 
 ; Setting a known variable to other unknown variable
 a = w
+
+; Setting a variable to a different data type
+string intvar = 20
+
+int strvar = "sup"

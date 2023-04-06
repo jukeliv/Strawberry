@@ -190,7 +190,12 @@ int interpret(const char* prog)
             }
             variables[var_index].id = token_list.content[++i].value.content;
             ++i;
-            variables[var_index].value = String_copy(token_list.content[++i].value);
+            if(token_list.content[++i].type != TOK_NUM)
+            {
+                printf("ERROR: Can't set an int to another data type\n");
+                return 1;
+            }
+            variables[var_index].value = String_copy(String_Init_Str(itos(stoi(token_list.content[i].value.content))));
             variables[var_index].type = INT;
             ++var_index;
         }
@@ -208,7 +213,12 @@ int interpret(const char* prog)
             }
             variables[var_index].id = token_list.content[++i].value.content;
             ++i;
-            variables[var_index].value = String_copy(token_list.content[++i].value);
+            if(token_list.content[++i].type != TOK_STR)
+            {
+                printf("ERROR: Can't set an string to another data type\n");
+                return 1;
+            }
+            variables[var_index].value = String_copy(token_list.content[i].value);
             variables[var_index].type = STRING;
             ++var_index;
         }
@@ -222,19 +232,91 @@ int interpret(const char* prog)
         else if(token_list.content[i].type == TOK_IF)
         {
             ++i;
-            printf("ERROR: If statements are not implemented yet");
-            return 1;
-            if(token_list.content[i].type != TOK_EQUALS)
+            if(token_list.content[++i].type != TOK_EQUALS)
             {
-                if(find_var(variables, heap, token_list.content[i-1].value.content)->type != find_var(variables, heap, token_list.content[i+1].value.content)->type)
-                    return 1;
+                printf("ERROR: Check statement has not been implemented\n");
+                return 1;
+            }
+            var* a = find_var(variables, heap, token_list.content[i-1].value.content);
+            var* b = find_var(variables, heap, token_list.content[i+1].value.content);
+            String valA = String_Init();
+            String valB = String_Init();
+            var_type typeA = 0;
+            var_type typeB = 0;
+
+            if(a == NULL && token_list.content[i-1].type == TOK_ID)
+            {
+                printf("ERROR: Unknown variable in if statement (A)unknown == (B)");
+                return 1;
+            }
+            if(b == NULL && token_list.content[i+1].type == TOK_ID)
+            {
+                printf("ERROR: Unknown variable in if statement (A) == (B)unknown");
+                return 1;
+            }
+
+            if(a == NULL){
+                valA = token_list.content[i-1].value;
+                if(token_list.content[i-1].type == TOK_NUM)
+                    typeA = INT;
+                else if(token_list.content[i-1].type == TOK_STR)
+                    typeA = STRING;
+            }
+            else
+            {
+                valA = a->value;
+                typeA = a->type;
+            }
+            
+            if(b == NULL){
+                valB = token_list.content[i+1].value;
+                if(token_list.content[i+1].type == TOK_NUM)
+                    typeB = INT;
+                else if(token_list.content[i+1].type == TOK_STR)
+                    typeB = STRING;
+            }
+            else{
+                valB = b->value;
+                typeB = b->type;
+            }
+            
+            if(typeA != typeB)
+            {
+                printf("ERROR: Can't compare two variables/values with different data types");
+                return 1;
+            }
+            char check = 1;
+            if(typeA == INT)
+            {
+                if(stoi(valA.content) == stoi(valB.content))
+                    check = 0;
+            }
+            else if(typeA == STRING)
+            {
+                if(!strcmp(valA.content, valB.content))
+                    check = 0;
+            }
+            
+            if(check)
+            {
+                for(int j = i; j < token_list.count; ++j)
+                {
+                    if(token_list.content[j].type == TOK_END)
+                    {
+                        i = j;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                ++i;
             }
         }
         else if(token_list.content[i].type == TOK_PRINT)
         {
             //print "hello world"
-            ++i;
-            if(token_list.content[i].type != TOK_ID)
+            if(token_list.content[++i].type != TOK_ID)
             {
                 printf("%s\n", token_list.content[i].value.content);
             }

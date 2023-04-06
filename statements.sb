@@ -1,0 +1,4 @@
+int a = "lol"
+if a == 10
+    print "Hello world"
+end
