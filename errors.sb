@@ -4,7 +4,7 @@
 string str = "H"
 str -= "lol"
 
-; Incorrect data type
+; Incorrect data type ( while adding )
 int a = 20
 a += "Hello"
 
