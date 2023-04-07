@@ -383,6 +383,8 @@ int interpret(const char* prog)
                 op = 1;
             else if(token_list.content[i].type == TOK_LESS)
                 op = 2;
+            else if(token_list.content[i].type == TOK_NOT)
+                op = 3;
             
             if(op == -1)
             {
@@ -460,6 +462,11 @@ int interpret(const char* prog)
                     if(stoi(valA.content) < stoi(valB.content))
                         check = 0;
                 }
+                else if(op == 3)
+                {
+                    if(stoi(valA.content) != stoi(valB.content))
+                        check = 0;
+                }
             }
             else if(typeA == STRING)
             {
@@ -476,6 +483,11 @@ int interpret(const char* prog)
                 else if(op == 2)
                 {
                     if(valA.count < valB.count)
+                        check = 0;
+                }
+                else if(op == 3)
+                {
+                    if(strcmp(valA.content, valB.content))
                         check = 0;
                 }
             }

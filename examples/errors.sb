@@ -1,6 +1,7 @@
 ; This file is to check if every "Error check" I added indeed works
-
-; String subtraction
+; NOTE: Love to see how every error here works but no every example works
+;       makes development funny
+; String subtraction ( does the same with division and multiplication )
 string str = "H"
 str -= "lol"
 

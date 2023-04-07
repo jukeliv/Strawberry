@@ -17,7 +17,8 @@ typedef enum
     TOK_CLOSE_BRACKET,
     TOK_STOP,
     TOK_SET, // =
-    TOK_EQUALS, // ==
+    TOK_EQUALS, // == and "is"
+    TOK_NOT,    // != and "not"
     TOK_PLUS, // +
     TOK_ADDITION, // +=
     TOK_MINUS, // -
@@ -109,6 +110,19 @@ int Tokenize(const char* source, Token_List* token_list)
             {
                 lex[lex_i++] = '=';
                 Token_List_Push(token_list, Token_Init(TOK_SET, String_Init_Str(lex)));
+            }
+        }
+        else if(source[i] == '!')
+        {
+            if(source[++i] == '='){
+                lex[lex_i++] = '!';
+                lex[lex_i++] = '=';
+                Token_List_Push(token_list, Token_Init(TOK_NOT, String_Init_Str(lex)));
+            }
+            else
+            {
+                printf("ERROR: Operator has not been implemented\n");
+                return 1;
             }
         }
         else if(source[i] == '+')
@@ -222,6 +236,9 @@ int Tokenize(const char* source, Token_List* token_list)
             }
             else if(!strcmp(lex, "is")){
                 Token_List_Push(token_list, Token_Init(TOK_EQUALS, String_Init_Str(lex)));
+            }
+            else if(!strcmp(lex, "not")){
+                Token_List_Push(token_list, Token_Init(TOK_NOT, String_Init_Str(lex)));
             }
             else{
                 Token_List_Push(token_list, Token_Init(TOK_ID, String_Init_Str(lex)));
