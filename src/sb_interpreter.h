@@ -29,9 +29,12 @@ int interpret(const char* prog)
 {
     Token_List token_list;
     Token_List_Init(&token_list);
-    if(Tokenize(prog, &token_list))
+    if(Tokenize(prog, &token_list) == 1)
+    {
+        printf("ERROR: While tokenizing file!!!\n");
         return 1;
-    
+    }
+
     var* variables = (var*)malloc(sizeof(var));
     unsigned int heap = 1;
     unsigned int var_index = 0;
