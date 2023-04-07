@@ -1,0 +1,13 @@
+if "Hello world" is "Hello world"
+    print "equals working"
+end
+
+if "Hello world" > "Hello"
+    print "greater than working"
+end
+
+if "12" < "12345"
+    print "less than working"
+end
+
+stop 0

@@ -15,12 +15,19 @@ typedef enum
     TOK_ID,
     TOK_OPEN_BRACKET,
     TOK_CLOSE_BRACKET,
-    TOK_SET,
-    TOK_EQUALS,
-    TOK_PLUS,
-    TOK_ADDITION,
-    TOK_MINUS,
-    TOK_SUBTRACTION,
+    TOK_STOP,
+    TOK_SET, // =
+    TOK_EQUALS, // ==
+    TOK_PLUS, // +
+    TOK_ADDITION, // +=
+    TOK_MINUS, // -
+    TOK_SUBTRACTION, // -= 
+    TOK_DIVISION, // /
+    TOK_DIVIDED, // /=
+    TOK_MULTIPLY, // *
+    TOK_MULTIPLIED, // *=
+    TOK_GRATER, // >
+    TOK_LESS, // <
 } Token_Type;
 
 typedef struct
@@ -61,15 +68,14 @@ void Token_List_Push(Token_List* token_list, Token token)
     token_list->content[token_list->count++] = token;
 }
 
-void Tokenize(const char* source, Token_List* token_list)
+int Tokenize(const char* source, Token_List* token_list)
 {
-    unsigned int i = 0;
     char lex[256];
     unsigned int lex_i = 0;
 
-    while(source[i] != '\0')
+    for(unsigned int i = 0; i < strlen(source); ++i)
     {
-        while(source[i] == '\n' || source[i] == ' ')
+        while(source[i] == '\n' || source[i] == ' ' || source[i] == '\r')
             ++i;
 
         lex_i=0;
@@ -81,21 +87,29 @@ void Tokenize(const char* source, Token_List* token_list)
                 ++i;
             continue;
         }
+        else if(source[i] == '>')
+        {
+            lex[lex_i++] = '>';
+            Token_List_Push(token_list, Token_Init(TOK_GRATER, String_Init_Str(lex)));
+            continue;
+        }
+        else if(source[i] == '<')
+        {
+            lex[lex_i++] = '<';
+            Token_List_Push(token_list, Token_Init(TOK_LESS, String_Init_Str(lex)));
+        }
         else if(source[i] == '=')
         {
             if(source[++i] == '='){
                 lex[lex_i++] = '=';
                 lex[lex_i++] = '=';
                 Token_List_Push(token_list, Token_Init(TOK_EQUALS, String_Init_Str(lex)));
-                ++i;
             }
             else
             {
                 lex[lex_i++] = '=';
                 Token_List_Push(token_list, Token_Init(TOK_SET, String_Init_Str(lex)));
-                ++i;
             }
-            continue;
         }
         else if(source[i] == '+')
         {
@@ -103,15 +117,12 @@ void Tokenize(const char* source, Token_List* token_list)
                 lex[lex_i++] = '+';
                 lex[lex_i++] = '=';
                 Token_List_Push(token_list, Token_Init(TOK_ADDITION, String_Init_Str(lex)));
-                ++i;
             }
             else
             {
                 lex[lex_i++] = '+';
                 Token_List_Push(token_list, Token_Init(TOK_PLUS, String_Init_Str(lex)));
-                ++i;
             }
-            continue;
         }
         else if(source[i] == '-')
         {
@@ -119,28 +130,49 @@ void Tokenize(const char* source, Token_List* token_list)
                 lex[lex_i++] = '-';
                 lex[lex_i++] = '=';
                 Token_List_Push(token_list, Token_Init(TOK_SUBTRACTION, String_Init_Str(lex)));
-                ++i;
             }
             else
             {
                 lex[lex_i++] = '-';
                 Token_List_Push(token_list, Token_Init(TOK_MINUS, String_Init_Str(lex)));
-                ++i;
             }
-            continue;
+        }
+        else if(source[i] == '*')
+        {
+            if(source[++i] == '='){
+                lex[lex_i++] = '*';
+                lex[lex_i++] = '=';
+                Token_List_Push(token_list, Token_Init(TOK_MULTIPLIED, String_Init_Str(lex)));
+            }
+            else
+            {
+                lex[lex_i++] = '*';
+                Token_List_Push(token_list, Token_Init(TOK_MULTIPLY, String_Init_Str(lex)));
+            }
+        }
+        else if(source[i] == '/')
+        {
+            if(source[++i] == '='){
+                lex[lex_i++] = '/';
+                lex[lex_i++] = '=';
+                Token_List_Push(token_list, Token_Init(TOK_DIVIDED, String_Init_Str(lex)));
+            }
+            else
+            {
+                lex[lex_i++] = '/';
+                Token_List_Push(token_list, Token_Init(TOK_DIVISION, String_Init_Str(lex)));
+            }
         }
         else if(source[i] == '(')
         {
             lex[lex_i++] = '(';
             Token_List_Push(token_list, Token_Init(TOK_OPEN_BRACKET, String_Init_Str(lex)));
-            ++i;
             continue;
         }
         else if(source[i] == ')')
         {
             lex[lex_i++] = ')';
             Token_List_Push(token_list, Token_Init(TOK_CLOSE_BRACKET, String_Init_Str(lex)));
-            ++i;
             continue;
         }
         else if(source[i] == '"')
@@ -152,8 +184,6 @@ void Tokenize(const char* source, Token_List* token_list)
             }
             String str = String_Init_Str(lex);
             Token_List_Push(token_list, Token_Init(TOK_STR, str));
-            ++i;
-            continue;
         }
         else if(isnum(source[i]))
         {
@@ -163,8 +193,6 @@ void Tokenize(const char* source, Token_List* token_list)
                 lex[lex_i++] = source[i++];
             }
             Token_List_Push(token_list, Token_Init(TOK_NUM, String_Init_Str(lex)));
-            ++i;
-            continue;
         }
         else if(ischar(source[i]))
         {
@@ -189,13 +217,24 @@ void Tokenize(const char* source, Token_List* token_list)
             else if(!strcmp(lex, "print")){
                 Token_List_Push(token_list, Token_Init(TOK_PRINT, String_Init_Str(lex)));
             }
+            else if(!strcmp(lex, "stop")){
+                Token_List_Push(token_list, Token_Init(TOK_STOP, String_Init_Str(lex)));
+            }
+            else if(!strcmp(lex, "is")){
+                Token_List_Push(token_list, Token_Init(TOK_EQUALS, String_Init_Str(lex)));
+            }
             else{
                 Token_List_Push(token_list, Token_Init(TOK_ID, String_Init_Str(lex)));
             }
-            ++i;
-            continue;
         }
-        ++i;
+        else
+        {
+            if(source[i] == '\0')
+                break;
+            printf("Unknown character (%c : %d)\n", source[i], source[i]);
+            return 1;
+        }
     }
+    return 0;
 }
 #endif // SB_TOKEN_H_

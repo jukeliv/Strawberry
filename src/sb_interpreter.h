@@ -29,15 +29,41 @@ int interpret(const char* prog)
 {
     Token_List token_list;
     Token_List_Init(&token_list);
-    Tokenize(prog, &token_list);
+    if(Tokenize(prog, &token_list))
+        return 1;
     
     var* variables = (var*)malloc(sizeof(var));
     unsigned int heap = 1;
     unsigned int var_index = 0;
-    
+    if(token_list.content[token_list.count-2].type != TOK_STOP)
+    {
+        printf("ERROR: You forgot to add the \"stop\" keyword at the end of your program");
+        return 1;
+    }
     for(unsigned int i = 0; i < token_list.count; ++i)
     {
-        if(token_list.content[i].type == TOK_ID)
+        if(token_list.content[i].type == TOK_STOP)
+        {
+            if(token_list.content[++i].type == TOK_NUM)
+            {
+                return stoi(token_list.content[++i].value.content);
+            }
+            else if(token_list.content[i].type == TOK_ID)
+            {
+                var* a = find_var(variables, heap, token_list.content[i].value.content);
+                if(a == NULL)
+                {
+                    printf("ERROR: Can't stop execution passing a unknown variable (%s)\n", token_list.content[i].value.content);
+                    return 1;
+                }
+            }
+            else
+            {
+                printf("ERROR: Can't stop execution passing a unknown type\n");
+                return 1;
+            }
+        }
+        else if(token_list.content[i].type == TOK_ID)
         {
             var* a = find_var(variables, heap, token_list.content[i++].value.content);
             if(a == NULL)
@@ -53,6 +79,10 @@ int interpret(const char* prog)
                 op = 1;
             else if(token_list.content[i].type == TOK_SUBTRACTION)
                 op = 2;
+            else if(token_list.content[i].type == TOK_MULTIPLIED)
+                op = 3;
+            else if(token_list.content[i].type == TOK_DIVIDED)
+                op = 4;
             
             if(op == -1)
             {
@@ -65,7 +95,7 @@ int interpret(const char* prog)
             var* b = find_var(variables, heap, token_list.content[i].value.content);
             if(b == NULL && token_list.content[i].type == TOK_ID)
             {
-                printf("ERROR: Unknown set\n");
+                printf("ERROR: Unknown variable in operation (A) %s (B)unknown\n", token_list.content[i-1].value.content);
                 return 1;
             }
                 
@@ -100,14 +130,11 @@ int interpret(const char* prog)
 
                     if(a->type == STRING)
                         String_Concat(&a->value, token_list.content[i].value.content);
-                    
-                    if(a->type == INT)
+                    else if(a->type == INT)
                     {
                         int valA = stoi(a->value.content);
-                        printf("%d\n", valA);
                         int valB = stoi(token_list.content[i].value.content);
-                        printf("%d\n", valB);
-                        a->value.content = (char*)itos(valA + valB);
+                        a->value = String_Init_Str(itos(valA + valB));
                     }
                 }else if(op == 2)
                 {
@@ -121,14 +148,48 @@ int interpret(const char* prog)
                         printf("ERROR: Can't subtract with strings\n");
                         return 1;
                     }
-                    if(a->type == INT)
+                    else if(a->type == INT)
                     {
                         int valA = stoi(a->value.content);
                         int valB = stoi(token_list.content[i].value.content);
-                        const char* val = itos(valA - valB);
-                        a->value.count = strlen(val);
-                        a->value.heap = strlen(val)-1;
-                        a->value.content = (char*)val;
+                        a->value = String_Init_Str(itos(valA - valB));
+                    }
+                }else if(op == 3)
+                {
+                    if(a->type == INT && token_list.content[i].type != TOK_NUM)
+                    {
+                        printf("ERROR: Conflicting types, (A)type == INT, (B) != Numeric");
+                        return 1;
+                    }
+                    if(a->type == STRING)
+                    {
+                        printf("ERROR: Can't multiply with strings\n");
+                        return 1;
+                    }
+                    else if(a->type == INT)
+                    {
+                        int valA = stoi(a->value.content);
+                        int valB = stoi(token_list.content[i].value.content);
+                        a->value = String_Init_Str(itos(valA * valB));
+                    }
+                }
+                else if(op == 4)
+                {
+                    if(a->type == INT && token_list.content[i].type != TOK_NUM)
+                    {
+                        printf("ERROR: Conflicting types, (A)type == INT, (B) != Numeric");
+                        return 1;
+                    }
+                    if(a->type == STRING)
+                    {
+                        printf("ERROR: Can't divide with strings\n");
+                        return 1;
+                    }
+                    else if(a->type == INT)
+                    {
+                        int valA = stoi(a->value.content);
+                        int valB = stoi(token_list.content[i].value.content);
+                        a->value = String_Init_Str(itos(valA / valB));
                     }
                 }
             }
@@ -138,35 +199,32 @@ int interpret(const char* prog)
                 {
                     if(a->type != b->type)
                     {
-                        printf("ERROR: trying to set variable(A) to variable(B) when (A)type != (B)type\n");
+                        printf("ERROR: Conflicting types, (A)type == INT, (B) != Numeric");
                         return 1;
                     }
                     a->value = b->value;
                 }
-                if(op == 1)
+                else if(op == 1)
                 {
                     if(a->type != b->type)
                     {
-                        printf("ERROR: (A)type conflicting with (B)type in addition\n");
+                        printf("ERROR: Conflicting types, (A)type == INT, (B) != Numeric");
                         return 1;
                     }
                     if(a->type == STRING)
                         String_Concat(&a->value, b->value.content);
-                    if(a->type == INT)
+                    else if(a->type == INT)
                     {
                         int valA = stoi(a->value.content);
                         int valB = stoi(b->value.content);
-                        const char* val = itos(valA + valB);
-                        a->value.count = strlen(val);
-                        a->value.heap = strlen(val)-1;
-                        a->value.content = (char*)val;
+                        a->value = String_Init_Str(itos(valA + valB));
                     }
                 }
-                if(op == 2)
+                else if(op == 2)
                 {
                     if(a->type != b->type)
                     {
-                        printf("ERROR: (A)type conflicting with (B)type in subtraction\n");
+                        printf("ERROR: Conflicting types, (A)type == INT, (B) != Numeric");
                         return 1;
                     }
                     if(a->type == STRING)
@@ -178,7 +236,45 @@ int interpret(const char* prog)
                     {
                         int valA = stoi(a->value.content);
                         int valB = stoi(b->value.content);
-                        a->value.content = (char*)itos(valA + valB);
+                        a->value.content = (char*)itos(valA - valB);
+                    }
+                }
+                else if(op == 3)
+                {
+                    if(a->type != b->type)
+                    {
+                        printf("ERROR: Conflicting types, (A)type == INT, (B) != Numeric");
+                        return 1;
+                    }
+                    if(a->type == STRING)
+                    {
+                        printf("ERROR: Can't multiply with strings\n");
+                        return 1;
+                    }
+                    if(a->type == INT)
+                    {
+                        int valA = stoi(a->value.content);
+                        int valB = stoi(b->value.content);
+                        a->value.content = (char*)itos(valA * valB);
+                    }
+                }
+                else if(op == 4)
+                {
+                    if(a->type != b->type)
+                    {
+                        printf("ERROR: Conflicting types, (A)type == INT, (B) != Numeric");
+                        return 1;
+                    }
+                    if(a->type == STRING)
+                    {
+                        printf("ERROR: Can't divide with strings\n");
+                        return 1;
+                    }
+                    if(a->type == INT)
+                    {
+                        int valA = stoi(a->value.content);
+                        int valB = stoi(b->value.content);
+                        a->value.content = (char*)itos(valA / valB);
                     }
                 }
             }
@@ -277,9 +373,17 @@ int interpret(const char* prog)
         else if(token_list.content[i].type == TOK_IF)
         {
             ++i;
-            if(token_list.content[++i].type != TOK_EQUALS)
+            int op = -1;
+            if(token_list.content[++i].type == TOK_EQUALS)
+                op = 0;
+            else if(token_list.content[i].type == TOK_GRATER)
+                op = 1;
+            else if(token_list.content[i].type == TOK_LESS)
+                op = 2;
+            
+            if(op == -1)
             {
-                printf("ERROR: Check statement has not been implemented\n");
+                printf("ERROR: Unknown operator (%s)\n", token_list.content[i].value.content);
                 return 1;
             }
             var* a = find_var(variables, heap, token_list.content[i-1].value.content);
@@ -327,6 +431,8 @@ int interpret(const char* prog)
                 typeB = b->type;
             }
 
+            ++i;
+
             if(typeA != typeB)
             {
                 printf("ERROR: Can't compare two variables/values with different data types");
@@ -336,18 +442,44 @@ int interpret(const char* prog)
             char check = 1;
             if(typeA == INT)
             {
-                if(stoi(valA.content) == stoi(valB.content))
-                    check = 0;
+                if(op == 0)
+                {
+                    if(stoi(valA.content) == stoi(valB.content))
+                        check = 0;
+                }
+                else if(op == 1)
+                {
+                    if(stoi(valA.content) > stoi(valB.content))
+                        check = 0;
+                }
+                else if(op == 2)
+                {
+                    if(stoi(valA.content) < stoi(valB.content))
+                        check = 0;
+                }
             }
             else if(typeA == STRING)
             {
-                if(!strcmp(valA.content, valB.content))
-                    check = 0;
+                if(op == 0)
+                {
+                    if(!strcmp(valA.content, valB.content))
+                        check = 0;
+                }
+                else if(op == 1)
+                {
+                    if(valA.count > valB.count)
+                        check = 0;
+                }
+                else if(op == 2)
+                {
+                    if(valA.count < valB.count)
+                        check = 0;
+                }
             }
             
             if(check)
             {
-                for(int j = i; j < token_list.count; ++j)
+                for(int j = i+1; j < token_list.count; ++j)
                 {
                     if(token_list.content[j].type == TOK_END)
                     {
@@ -355,10 +487,6 @@ int interpret(const char* prog)
                         break;
                     }
                 }
-            }
-            else
-            {
-                ++i;
             }
         }
         else if(token_list.content[i].type == TOK_PRINT)

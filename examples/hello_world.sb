@@ -1,0 +1,4 @@
+; Simple "Hello World" example in Strawberry
+print "Hello World!"
+
+stop 0

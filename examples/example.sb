@@ -21,3 +21,5 @@ print c
 ;int e = 20
 ;e += 10
 ;print e
+
+stop 0

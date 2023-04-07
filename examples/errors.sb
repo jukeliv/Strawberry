@@ -24,3 +24,5 @@ a = w
 string intvar = 20
 
 int strvar = "sup"
+
+stop 0
