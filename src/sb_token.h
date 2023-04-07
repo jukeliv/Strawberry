@@ -9,6 +9,7 @@ typedef enum
     TOK_INT,
     TOK_PRINT,
     TOK_IF,
+    TOK_ELSE,
     TOK_END,
     TOK_STR,
     TOK_NUM,
@@ -218,6 +219,9 @@ int Tokenize(const char* source, Token_List* token_list)
             
             if(!strcmp(lex, "if")){
                 Token_List_Push(token_list, Token_Init(TOK_IF, String_Init_Str(lex)));
+            }
+            else if(!strcmp(lex, "else")){
+                Token_List_Push(token_list, Token_Init(TOK_ELSE, String_Init_Str(lex)));
             }
             else if(!strcmp(lex, "end")){
                 Token_List_Push(token_list, Token_Init(TOK_END, String_Init_Str(lex)));

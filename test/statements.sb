@@ -1,0 +1,50 @@
+; Checking if statements work
+int a = 10
+int b = 20
+
+if a < b
+    print "Test 1: Succeed"
+    
+else
+    print "Test 1: Failure"
+    stop 1
+end
+if a not b
+    print "Test 2: Succeed"
+    
+else
+    print "Test 2: Failure"
+    stop 1
+end
+
+if 10 < 20
+    print "Test 3: Succeed"
+    
+else
+    print "Test 3: Failure"
+    stop 1
+end
+if 10 not 20
+    print "Test 4: Succeed"
+    
+else
+    print "Test 4: Failure"
+    stop 1
+end
+
+if a < 20
+    print "Test 5: Succeed"
+    
+else
+    print "Test 5: Failure"
+    stop 1
+end
+if a not 20
+    print "Test 6: Succeed"
+    
+else
+    print "Test 6: Failure"
+    stop 1
+end
+
+stop 0
